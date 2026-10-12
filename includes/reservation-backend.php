@@ -3,7 +3,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-include __DIR__ . '/../../includes/connections.php';
+include __DIR__ . '/connections.php';
 
 // Generate next sequential Reservation_ID like RIDN-1000000, RIDN-1000001, ...
 function generateNextReservationId($conn) {

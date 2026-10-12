@@ -1,7 +1,7 @@
 <?php
 include 'includes/session_check.php';
 reservationCheckLogin();
-include __DIR__ . '/../includes/connections.php'; // provides $conn for driver/vehicle selects
+include __DIR__ . '/includes/connections.php'; // shared logistic2_db
 
 $currentUser = getReservationUser();
 
@@ -116,7 +116,7 @@ if (isset($conn) && $conn) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reservation Portal | Logistic 2</title>
     <link rel="icon" href="../images/logo2.png" type="image/x-icon">
-    <link href="../css/tailwind.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />

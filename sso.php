@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once __DIR__ . '/../includes/connections.php'; // provides $conn (same DB as main system)
+require_once __DIR__ . '/includes/connections.php'; // shared logistic2_db
 
 if (!isset($conn)) {
     header('Location: login.php?error=' . urlencode('Unable to connect to database for SSO.'));
