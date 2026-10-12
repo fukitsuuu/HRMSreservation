@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Debug: Check if we can connect to database
 try {
-    include '../../includes/connections.php';
+    include __DIR__ . '/connections.php';
     if (!isset($conn) || !$conn) {
         throw new Exception("Database connection failed");
     }

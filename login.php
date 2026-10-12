@@ -1,30 +1,31 @@
-
-
-
 <?php
 session_start();
 
 // Check if user is already logged in and redirect to reservation portal
 if (isset($_SESSION['user_id']) && isset($_SESSION['username']) && isset($_SESSION['department'])) {
-    // User is already logged in, redirect to reservation portal
     header("Location: reservation.php");
     exit();
 }
 
-// Get error message from URL parameter
 $error_message = '';
 if (isset($_GET['error'])) {
     $error_message = htmlspecialchars($_GET['error']);
 }
+
+$info_message = '';
+if (isset($_GET['message'])) {
+    $info_message = htmlspecialchars($_GET['message']);
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Reservation Request Portal</title>
-<link rel="icon" href="images/logo2.png?v=<?php echo time(); ?>">
-<link href="../css/tailwind.css" rel="stylesheet" />
+<title>ATIERA — Reservation Login</title>
+<link rel="icon" href="images/logo2.png">
+<link href="css/tailwind.css" rel="stylesheet" />
 
 <style>
   :root{
@@ -32,49 +33,27 @@ if (isset($_GET['error'])) {
     --gold:#d4af37; --ink:#0f172a; --muted:#64748b;
     --ring:0 0 0 3px rgba(35,66,166,.28);
     --card-bg: rgba(255,255,255,.95); --card-border: rgba(226,232,240,.9);
-    --wm-opa-light:.35; --wm-opa-dark:.55;
   }
   @media (prefers-color-scheme: dark){ :root{ --ink:#e5e7eb; --muted:#9ca3af; } }
 
-  /* ===== Background ===== */
   body{
     min-height:100svh; margin:0; color:var(--ink);
-    background:
-      radial-gradient(70% 60% at 8% 10%, rgba(255,255,255,.18) 0, transparent 60%),
-      radial-gradient(40% 40% at 100% 0%, rgba(212,175,55,.08) 0, transparent 40%),
-      linear-gradient(140deg, rgba(15,28,73,1) 50%, rgba(255,255,255,1) 50%);
+    display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    background:#fff;
   }
-  html.dark body{
-    background:
-      radial-gradient(70% 60% at 8% 10%, rgba(212,175,55,.08) 0, transparent 60%),
-      radial-gradient(40% 40% at 100% 0%, rgba(212,175,55,.12) 0, transparent 40%),
-      linear-gradient(140deg, rgba(7,12,38,1) 50%, rgba(11,21,56,1) 50%);
-    color:#e5e7eb;
-  }
-
-  /* ===== Watermark ===== */
-  .bg-watermark{ position:fixed; inset:0; z-index:-1; display:grid; place-items:center; pointer-events:none; }
-  .bg-watermark img{
-    width:min(820px,70vw); max-height:68vh; object-fit:contain; opacity:var(--wm-opa-light);
-    filter: drop-shadow(0 0 26px rgba(255,255,255,.40)) drop-shadow(0 14px 34px rgba(0,0,0,.25));
-    transition:opacity .25s ease, filter .25s ease, transform .6s ease;
-  }
-  html.dark .bg-watermark img{
-    opacity:var(--wm-opa-dark);
-    filter: drop-shadow(0 0 34px rgba(255,255,255,.55)) drop-shadow(0 16px 40px rgba(0,0,0,.30));
+  @media (max-width: 767px){
+    body{ grid-template-columns:1fr; }
   }
 
   .reveal { opacity:0; transform:translateY(8px); animation:reveal .45s .05s both; }
   @keyframes reveal { to { opacity:1; transform:none; } }
 
-  /* ===== Card ===== */
   .card{
-    background:var(--card-bg); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    background:#fff;
     border:1px solid var(--card-border); border-radius:18px; box-shadow:0 16px 48px rgba(2,6,23,.18);
   }
   html.dark .card{ background:rgba(17,24,39,.92); border-color:rgba(71,85,105,.55); box-shadow:0 16px 48px rgba(0,0,0,.5); }
 
-  /* ===== Inputs ===== */
   .field{ position:relative; }
   .input{
     width:100%; border:1px solid #e5e7eb; border-radius:12px; background:#fff;
@@ -88,16 +67,80 @@ if (isset($_GET['error'])) {
   }
   .input:focus + .float-label,
   .input:not(:placeholder-shown) + .float-label,
-  .input.has-value + .float-label{
+  .input.has-value + .float-label,
+  .input:-webkit-autofill + .float-label,
+  .input:autofill + .float-label{
     top:0; transform:translateY(-50%) scale(.92); color:var(--blue-a); background:#fff;
   }
   html.dark .input:focus + .float-label,
   html.dark .input:not(:placeholder-shown) + .float-label,
-  html.dark .input.has-value + .float-label{ background:#0b1220; }
-  .icon-right{ position:absolute; right:.6rem; top:50%; transform:translateY(-50%); color:#64748b; }
+  html.dark .input.has-value + .float-label,
+  html.dark .input:-webkit-autofill + .float-label,
+  html.dark .input:autofill + .float-label{ background:#0b1220; }
+
+  @keyframes autofillStart { from { opacity:1; } to { opacity:1; } }
+  .input:-webkit-autofill{
+    animation-name:autofillStart; animation-duration:.01s;
+    -webkit-text-fill-color:#0f172a;
+    box-shadow:0 0 0 1000px #fff inset;
+    caret-color:#0f172a;
+  }
+  html.dark .input:-webkit-autofill{
+    -webkit-text-fill-color:#e5e7eb;
+    box-shadow:0 0 0 1000px #0b1220 inset;
+    caret-color:#e5e7eb;
+  }
+  .icon-right{
+    position:absolute; top:0; bottom:0; right:.45rem; width:2.25rem;
+    margin:0; padding:0; border:0; background:transparent; color:#64748b;
+    display:flex; align-items:center; justify-content:center; line-height:0;
+  }
+  .icon-right svg{ display:block; width:20px; height:20px; }
+  .icon-right svg.hidden{ display:none; }
+  span.icon-right svg{ transform:translateY(1px); }
   html.dark .icon-right{ color:#94a3b8; }
 
-  /* ===== Buttons ===== */
+  .caps-note{
+    position:absolute; right:0; bottom:calc(100% + .35rem);
+    font-size:.75rem; line-height:1; padding:.25rem .45rem; border-radius:.4rem;
+    background:#fffbeb; border:1px solid #fcd34d; color:#92400e;
+  }
+  html.dark .caps-note{ background:rgba(120,53,15,.35); border-color:#b45309; color:#fde68a; }
+
+  .brand-pane{
+    min-height:100svh; display:flex; align-items:center; justify-content:center;
+    padding:3.5rem; background:#0f1c49;
+  }
+  html.dark .brand-pane{ background:#070c26; }
+  .brand-copy{ width:min(100%, 26rem); color:#fff; }
+  .brand-copy img{ width:11rem; margin:0 0 1.75rem; }
+  .brand-rule{ width:3rem; height:3px; margin:0 0 1.25rem; background:var(--gold); border:0; }
+  .brand-copy h1{ font-size:2.4rem; line-height:1.12; font-weight:800; letter-spacing:-.02em; margin:0; }
+  .brand-copy p{ margin:1.1rem 0 0; color:rgba(255,255,255,.88); font-size:1.05rem; }
+  @media (max-width: 767px){
+    .brand-pane{ min-height:auto; padding:1.75rem 1.25rem 1.5rem; }
+    .brand-copy img{ width:8rem; margin-bottom:1rem; }
+    .brand-copy h1{ font-size:1.55rem; }
+    .brand-copy p{ margin-top:.6rem; font-size:.95rem; }
+  }
+
+  .auth-pane{
+    min-height:100svh; display:flex; align-items:center; justify-content:center;
+    padding:2.5rem 1.5rem; background:#fff;
+  }
+  html.dark .auth-pane{ background:#0b1538; }
+  @media (max-width: 767px){
+    .auth-pane{ min-height:auto; padding:1.25rem 1rem 2rem; align-items:stretch; }
+  }
+  .auth-pane .card{ width:min(100%, 26.5rem); }
+  .card-title{ margin:0; color:#0f172a; font-size:1.25rem; font-weight:650; line-height:1.3; }
+  .card-lede{ margin:.35rem 0 0; color:#64748b; font-size:.9rem; line-height:1.45; }
+  html.dark .card-title{ color:#e5e7eb; }
+  html.dark .card-lede{ color:#9ca3af; }
+  .mode-btn{ flex-shrink:0; color:#0f172a; }
+  html.dark .mode-btn{ color:#e5e7eb; border-color:#334155; }
+  .mobile-logo{ display:none; }
+
   .btn{
     width:100%; display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
     background:linear-gradient(180deg, var(--blue-600), var(--blue-800));
@@ -108,101 +151,82 @@ if (isset($_GET['error'])) {
   .btn:active{ transform:translateY(1px) scale(.99); }
   .btn[disabled]{ opacity:.85; cursor:not-allowed; }
 
-  /* ===== Alerts (inline attempts/info) ===== */
   .alert{ border-radius:12px; padding:.65rem .8rem; font-size:.9rem }
   .alert-error{ border:1px solid #fecaca; background:#fef2f2; color:#b91c1c }
   .alert-info{ border:1px solid #c7d2fe; background:#eef2ff; color:#3730a3 }
+  .alert-success{ border:1px solid #bbf7d0; background:#f0fdf4; color:#166534 }
   html.dark .alert-error{ background:#3f1b1b; border-color:#7f1d1d; color:#fecaca }
   html.dark .alert-info{ background:#1e1b4b; border-color:#3730a3; color:#c7d2fe }
-
-
+  html.dark .alert-success{ background:#1b3a1b; border-color:#166534; color:#bbf7d0 }
 </style>
 </head>
 
-<body class="grid md:grid-cols-2 gap-0 place-items-center p-6 md:p-10">
+<body class="select-none">
 
-  <!-- Watermark -->
-  <div class="bg-watermark" aria-hidden="true">
-    <img src="images/logo.png" alt="ATIERA watermark" id="wm">
-  </div>
-
-  <!-- Left panel -->
-  <section class="hidden md:flex w-full h-full items-center justify-center mr-64">
-    <div class="max-w-lg text-white px-6 reveal">
-      <img src="images/logo.png" alt="ATIERA" class="w-56 mb-6 drop-shadow-xl select-none" draggable="false">
-      <h1 class="text-4xl font-extrabold leading-tight tracking-tight">
-        RESERVATION<br>REQUEST<br><span style="color:var(--gold)">PORTAL</span>
-      </h1>
+  <section class="brand-pane">
+    <div class="brand-copy reveal">
+      <img src="images/logo.png" alt="ATIERA" class="select-none" draggable="false">
+      <hr class="brand-rule">
+      <h1>ATIERA <span style="color:var(--gold)">HOTEL &amp; RESTAURANT</span><br>Reservation Portal</h1>
+      <p>Secure • Fast • Intuitive</p>
     </div>
   </section>
 
-  <!-- Right: Login -->
-  <main class="w-full max-w-md md:ml-auto">
+  <main class="auth-pane">
     <div id="card" class="card p-6 sm:p-8 reveal">
-      <div class="flex items-center justify-between mb-4">
-        <div class="md:hidden flex items-center gap-3">
-          <img src="images/logo.png" alt="ATIERA" class="h-10 w-auto">
+      <div class="flex items-start justify-between gap-4 mb-5">
+        <div class="min-w-0">
+          <img src="images/logo.png" alt="ATIERA" class="mobile-logo select-none" draggable="false">
+          <h2 class="card-title">Sign in</h2>
+          <p class="card-lede">Use your portal credentials to continue.</p>
         </div>
-        <button id="modeBtn" class="px-3 py-2 rounded-lg border border-slate-200 text-sm hover:bg-white/60 dark:hover:bg-slate-800" aria-pressed="false" title="Toggle dark mode">🌓</button>
+        <button id="modeBtn" type="button" class="mode-btn px-3 py-2 rounded-lg border border-slate-200 text-sm hover:bg-white/60" aria-pressed="false" title="Toggle dark mode" aria-label="Toggle dark mode">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        </button>
       </div>
 
-      <h3 class="text-lg sm:text-xl font-semibold mb-1">Sign in</h3>
-      <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Use your portal credentials to continue.</p>
-
-      <!-- Inline attempt + info banners -->
       <div id="alert" class="alert alert-error hidden mb-4" role="alert"></div>
-      <div id="info"  class="alert alert-info  hidden mb-4" role="status"></div>
-      
-      <?php if (!empty($error_message)): ?>
+      <div id="info" class="alert alert-info hidden mb-4" role="status"></div>
+
+      <?php if ($error_message !== ''): ?>
       <div class="alert alert-error mb-4" role="alert"><?php echo $error_message; ?></div>
       <?php endif; ?>
-      
-      <?php if (!empty($_GET['message'])): ?>
-      <div class="alert alert-info mb-4" role="alert"><?php echo htmlspecialchars($_GET['message']); ?></div>
+
+      <?php if ($info_message !== ''): ?>
+      <div class="alert alert-info mb-4" role="status"><?php echo $info_message; ?></div>
       <?php endif; ?>
 
-      <form id="loginForm" class="space-y-4" method="POST" action="includes/login-backend.php">
-        <!-- Username -->
+      <form id="loginForm" class="flex flex-col gap-4" method="POST" action="includes/login-backend.php">
         <div class="field">
-          <input id="username" name="username" type="text" autocomplete="username" class="input peer" placeholder=" " required aria-describedby="userHelp">
+          <input id="username" name="username" type="text" autocomplete="username" class="input peer" placeholder=" " required>
           <label for="username" class="float-label">Username or Email</label>
-          <span class="icon-right mx-2" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5.33 0-8 2.67-8 5v1h16v-1c0-2.33-2.67-5-8-5Z" fill="currentColor"/></svg>
+          <span class="icon-right" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5.33 0-8 2.67-8 5v1h16v-1c0-2.33-2.67-5-8-5Z" fill="currentColor"/></svg>
           </span>
         </div>
 
-        <!-- Password -->
-        <div>
-          <div class="flex items-center justify-between mb-1">
-            <span id="capsNote" class="hidden text-xs px-2 py-0.5 rounded bg-amber-50 border border-amber-300 text-amber-800 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-200">Caps Lock is ON</span>
-          </div>
-          <div class="field">
-            <input id="password" name="password" type="password" autocomplete="current-password" class="input pr-12 peer" placeholder=" " required>
-            <label for="password" class="float-label">Password</label>
-            <div class="icon-right flex items-center gap-1">
-              <button type="button" id="togglePw" class="w-9 h-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center" aria-label="Show password" aria-pressed="false" title="Show/Hide password">
-                <svg id="eyeOn" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 11a4 4 0 1 1 4-4 4 4 0 0 1-4 4Z" fill="currentColor"/></svg>
-                <svg id="eyeOff" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 4.27 4.28 3 21 19.72 19.73 21l-2.2-2.2A11.73 11.73 0 0 1 12 19c-5 0-9.27-3.11-11-7a12.71 12.71 0 0 1 4.1-4.73L3 4.27ZM12 7a5 5 0 0 1 5 5 5 5 0 0 1-.46 2.11L14.6 12.17A2.5 2.5 0 0 0 11.83 9.4L9.9 7.46A4.84 4.84 0 0 1 12 7Z" fill="currentColor"/></svg>
-              </button>
-            </div>
-          </div>
+        <div class="field">
+          <span id="capsNote" class="caps-note hidden">Caps Lock is ON</span>
+          <input id="password" name="password" type="password" autocomplete="current-password" class="input pr-12 peer" placeholder=" " required>
+          <label for="password" class="float-label">Password</label>
+          <button type="button" id="togglePw" class="icon-right rounded-lg hover:bg-slate-100" aria-label="Show password" aria-pressed="false" title="Show or hide password">
+            <svg id="eyeOn" viewBox="0 0 24 24" fill="none"><path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 11a4 4 0 1 1 4-4 4 4 0 0 1-4 4Z" fill="currentColor"/></svg>
+            <svg id="eyeOff" class="hidden" viewBox="0 0 24 24" fill="none"><path d="M3 4.27 4.28 3 21 19.72 19.73 21l-2.2-2.2A11.73 11.73 0 0 1 12 19c-5 0-9.27-3.11-11-7a12.71 12.71 0 0 1 4.1-4.73L3 4.27ZM12 7a5 5 0 0 1 5 5 5 5 0 0 1-.46 2.11L14.6 12.17A2.5 2.5 0 0 0 11.83 9.4L9.9 7.46A4.84 4.84 0 0 1 12 7Z" fill="currentColor"/></svg>
+          </button>
+        </div>
 
-        <!-- Submit -->
-        <button id="submitBtn" type="submit" class="btn my-4" aria-live="polite">
+        <button id="submitBtn" type="submit" class="btn" aria-live="polite">
           <span id="btnText">Sign In</span>
         </button>
-
-        <p class="text-xs text-center text-slate-500 dark:text-slate-400">© 2025 Logistic 2 - Group 8</p>
       </form>
+
+      <p class="text-xs text-center text-slate-500 mt-5">© 2025 ATIERA BSIT 4101 - GROUP 8</p>
     </div>
   </main>
-
-
 
 <script>
   const $ = (s, r=document)=>r.querySelector(s);
 
-  // Elements
   const form      = $('#loginForm');
   const userEl    = $('#username');
   const pwEl      = $('#password');
@@ -214,26 +238,18 @@ if (isset($_GET['error'])) {
   const submitBtn = $('#submitBtn');
   const btnText   = $('#btnText');
   const capsNote  = $('#capsNote');
-  const pwBar     = $('#pwBar');
-  const pwLabel   = $('#pwLabel');
   const modeBtn   = $('#modeBtn');
-  const wmImg     = $('#wm');
 
-  /* ---------- Dark mode toggle ---------- */
   modeBtn.addEventListener('click', ()=>{
     const root = document.documentElement;
     const dark = root.classList.toggle('dark');
     modeBtn.setAttribute('aria-pressed', String(dark));
-    wmImg.style.transform = 'scale(1.01)'; setTimeout(()=> wmImg.style.transform = '', 220);
   });
 
-  /* ---------- Alerts helpers ---------- */
   const showError = (msg)=>{ alertBox.textContent = msg; alertBox.classList.remove('hidden'); };
   const hideError = ()=> alertBox.classList.add('hidden');
-  const showInfo  = (msg)=>{ infoBox.textContent = msg; infoBox.classList.remove('hidden'); };
   const hideInfo  = ()=> infoBox.classList.add('hidden');
 
-  /* ---------- Caps Lock chip ---------- */
   function caps(e){
     const on = e.getModifierState && e.getModifierState('CapsLock');
     if (capsNote) capsNote.classList.toggle('hidden', !on);
@@ -241,21 +257,6 @@ if (isset($_GET['error'])) {
   pwEl.addEventListener('keyup', caps);
   pwEl.addEventListener('keydown', caps);
 
-  /* ---------- Password meter ---------- */
-  pwEl.addEventListener('input', () => {
-    const v = pwEl.value;
-    let score = 0;
-    if (v.length >= 6) score++;
-    if (/[A-Z]/.test(v)) score++;
-    if (/[0-9]/.test(v)) score++;
-    if (/[^A-Za-z0-9]/.test(v)) score++;
-    const widths = ['12%','38%','64%','88%','100%'];
-    const labels = ['weak','fair','okay','good','strong'];
-    pwBar.style.width = widths[score];
-    pwLabel.textContent = labels[score];
-  });
-
-  /* ---------- Show/Hide password ---------- */
   toggle.addEventListener('click', () => {
     const show = pwEl.type === 'password';
     pwEl.type = show ? 'text' : 'password';
@@ -266,17 +267,11 @@ if (isset($_GET['error'])) {
     pwEl.focus();
   });
 
-
-
-
-
-  /* ---------- Auth + lockout ---------- */
-  const MAX_TRIES = 5, LOCK_MS = 60_000;
-  const triesKey = 'atiera_login_tries';
-  const lockKey  = 'atiera_login_lock';
+  const LOCK_MS = 60_000;
+  const triesKey = 'atiera_reservation_login_tries';
+  const lockKey  = 'atiera_reservation_login_lock';
   let   lockTimer = null;
 
-  const num = key => Number(localStorage.getItem(key) || '0');
   const setNum = (key,val) => localStorage.setItem(key, String(val));
 
   function mmss(ms){
@@ -314,67 +309,48 @@ if (isset($_GET['error'])) {
   }
 
   function startLoading(){ submitBtn.disabled = true; btnText.textContent = 'Checking…'; }
-  function stopLoading(ok=false){
-    if (ok){ btnText.textContent = 'Success'; }
-    else { btnText.textContent = 'Sign In'; submitBtn.disabled = false; }
-  }
 
-  function shakeCard(){
-    const card = document.getElementById('card');
-    card.style.animation = 'shakeX .35s ease-in-out';
-    setTimeout(()=> card.style.animation = '', 360);
-  }
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
 
-  /* ---------- LOGIN SUBMIT ---------- */
-  form.addEventListener('submit', async (e) => {
     hideError(); hideInfo();
     if (checkLock()) {
-      e.preventDefault();
       return;
     }
 
     const u = userEl.value.trim();
     const p = pwEl.value;
-    if (!u || !p) { 
-      e.preventDefault();
-      showError('Please enter username/email and password.'); 
-      return; 
+    if (!u || !p) {
+      showError('Please enter username and password.');
+      return;
     }
 
     startLoading();
-    // Form will submit to PHP backend for authentication
+    form.submit();
   });
 
-  // Resume countdown if locked
   checkLock();
 
-  /* ---------- Auto-float labels for pre-filled values ---------- */
   function checkPreFilledInputs() {
-    const inputs = document.querySelectorAll('.input');
-    inputs.forEach(input => {
-      if (input.value) {
-        input.classList.add('has-value');
-      }
+    document.querySelectorAll('.input').forEach(input => {
+      input.classList.toggle('has-value', input.value !== '');
     });
   }
 
-  // Check on page load
-  checkPreFilledInputs();
-
-  /* ---------- Dynamic label floating ---------- */
   function handleInputChange(input) {
-    if (input.value) {
-      input.classList.add('has-value');
-    } else {
-      input.classList.remove('has-value');
-    }
+    input.classList.toggle('has-value', input.value !== '');
   }
 
-  // Add event listeners for all inputs
   document.querySelectorAll('.input').forEach(input => {
     input.addEventListener('input', () => handleInputChange(input));
+    input.addEventListener('change', () => handleInputChange(input));
     input.addEventListener('blur', () => handleInputChange(input));
+    input.addEventListener('animationstart', (e) => {
+      if (e.animationName === 'autofillStart') input.classList.add('has-value');
+    });
   });
+  checkPreFilledInputs();
+  [100, 400, 1000].forEach((ms) => setTimeout(checkPreFilledInputs, ms));
 </script>
 
 </body>
